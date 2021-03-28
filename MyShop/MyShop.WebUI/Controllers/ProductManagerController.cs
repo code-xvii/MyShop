@@ -1,4 +1,5 @@
 ﻿using Microsoft.SqlServer.Server;
+using MyShop.Core.Contracts;
 using MyShop.Core.Models;
 using MyShop.Core.ViewModels;
 using MyShop.DataAccess.InMemory;
@@ -12,19 +13,19 @@ namespace MyShop.WebUI.Controllers
 {
     public class ProductManagerController : Controller
     {
-        private readonly InMemoryRepository<Product> context;
-        private readonly InMemoryRepository<ProductCategory> productCategoryRepo;
+        private readonly IRepository<Product> productRepo;
+        private readonly IRepository<ProductCategory> productCategoryRepo;
 
-        public ProductManagerController()
+        public ProductManagerController(IRepository<Product> productRepo, IRepository<ProductCategory> productCategoryRepo)
         {
-            context = new InMemoryRepository<Product>();
-            productCategoryRepo = new InMemoryRepository<ProductCategory>();
+            this.productRepo = productRepo;
+            this.productCategoryRepo = productCategoryRepo;
         }
 
         // GET: ProductManager
         public ActionResult Index()
         {
-            var products = context.Collection().ToList();
+            var products = productRepo.Collection().ToList();
 
             return View(products);
         }
@@ -48,8 +49,8 @@ namespace MyShop.WebUI.Controllers
             }
             else
             {
-                context.Insert(product);
-                context.Commit();
+                productRepo.Insert(product);
+                productRepo.Commit();
                 return RedirectToAction("Index");
             }
         }
@@ -57,7 +58,7 @@ namespace MyShop.WebUI.Controllers
 
         public ActionResult Edit(string id)
         {
-            var product = context.Find(id);
+            var product = productRepo.Find(id);
             if (product == null)
             {
                 return HttpNotFound();
@@ -75,7 +76,7 @@ namespace MyShop.WebUI.Controllers
         [HttpPost]
         public ActionResult Edit(Product product, string id)
         {
-            var productToEdit = context.Find(id);
+            var productToEdit = productRepo.Find(id);
             if (productToEdit == null)
             {
                 return HttpNotFound();
@@ -94,7 +95,7 @@ namespace MyShop.WebUI.Controllers
                     productToEdit.Name = product.Name;
                     productToEdit.Price = product.Price;
 
-                    context.Commit();
+                    productRepo.Commit();
 
                     return RedirectToAction("Index");
                 }
@@ -104,7 +105,7 @@ namespace MyShop.WebUI.Controllers
 
         public ActionResult Delete(string id)
         {
-            var product = context.Find(id);
+            var product = productRepo.Find(id);
             if (product == null)
             {
                 return HttpNotFound();
@@ -119,15 +120,15 @@ namespace MyShop.WebUI.Controllers
         [ActionName("Delete")]
         public ActionResult ConfirmDelete(string id)
         {
-            var product = context.Find(id);
+            var product = productRepo.Find(id);
             if (product == null)
             {
                 return HttpNotFound();
             }
             else
             {
-                context.Delete(id);
-                context.Commit();
+                productRepo.Delete(id);
+                productRepo.Commit();
                 return RedirectToAction("Index");
             }
         }

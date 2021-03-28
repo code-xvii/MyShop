@@ -1,4 +1,5 @@
-﻿using MyShop.Core.Models;
+﻿using MyShop.Core.Contracts;
+using MyShop.Core.Models;
 using MyShop.DataAccess.InMemory;
 using System;
 using System.Collections.Generic;
@@ -10,17 +11,17 @@ namespace MyShop.WebUI.Controllers
 {
     public class ProductCategoryManagerController : Controller
     {
-        private readonly InMemoryRepository<ProductCategory> context;
+        private readonly IRepository<ProductCategory> productCategoryRepo;
 
-        public ProductCategoryManagerController()
+        public ProductCategoryManagerController(IRepository<ProductCategory> productCategoryRepo)
         {
-            context = new InMemoryRepository<ProductCategory>();
+           this.productCategoryRepo = productCategoryRepo;
         }
 
         // GET: ProductCategoryManager
         public ActionResult Index()
         {
-            var categories = context.Collection().ToList();
+            var categories = productCategoryRepo.Collection().ToList();
 
             return View(categories);
         }
@@ -40,8 +41,8 @@ namespace MyShop.WebUI.Controllers
             }
             else
             {
-                context.Insert(productCategory);
-                context.Commit();
+                productCategoryRepo.Insert(productCategory);
+                productCategoryRepo.Commit();
                 return RedirectToAction("Index");
             }
         }
@@ -49,7 +50,7 @@ namespace MyShop.WebUI.Controllers
 
         public ActionResult Edit(string id)
         {
-            var category = context.Find(id);
+            var category = productCategoryRepo.Find(id);
             if (category == null)
             {
                 return HttpNotFound();
@@ -63,7 +64,7 @@ namespace MyShop.WebUI.Controllers
         [HttpPost]
         public ActionResult Edit(ProductCategory productCategory, string id)
         {
-            var productCategoryToEdit = context.Find(id);
+            var productCategoryToEdit = productCategoryRepo.Find(id);
             if (productCategoryToEdit == null)
             {
                 return HttpNotFound();
@@ -78,7 +79,7 @@ namespace MyShop.WebUI.Controllers
                 {
                     productCategoryToEdit.Category = productCategory.Category;
                  
-                    context.Commit();
+                    productCategoryRepo.Commit();
 
                     return RedirectToAction("Index");
                 }
@@ -88,7 +89,7 @@ namespace MyShop.WebUI.Controllers
 
         public ActionResult Delete(string id)
         {
-            var category = context.Find(id);
+            var category = productCategoryRepo.Find(id);
             if (category == null)
             {
                 return HttpNotFound();
@@ -103,15 +104,15 @@ namespace MyShop.WebUI.Controllers
         [ActionName("Delete")]
         public ActionResult ConfirmDelete(string id)
         {
-            var category = context.Find(id);
+            var category = productCategoryRepo.Find(id);
             if (category == null)
             {
                 return HttpNotFound();
             }
             else
             {
-                context.Delete(id);
-                context.Commit();
+                productCategoryRepo.Delete(id);
+                productCategoryRepo.Commit();
                 return RedirectToAction("Index");
             }
         }
